@@ -1,3 +1,6 @@
+properties([parameters([
+        choice(choices: ['CreateTable', 'InsertTable', 'AlterTable', 'DropTable'], description: 'Select the action to do at cluster ', name: 'Action'), 
+        string(defaultValue: 'jenkinstable', description: 'Enter Databasename or Tablename', name: 'Name')])])
 pipeline{
     agent any
     environment {
@@ -8,6 +11,7 @@ pipeline{
         REDSHIFT_USER = 'admin'
         REDSHIFT_PASSWORD = 'Admin123'
     }
+
     stages {
         stage('Create Table') {
             steps {
@@ -18,27 +22,67 @@ pipeline{
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
-                    echo "PSQL path is: $psql"
-                    def createTable = '''
-                        CREATE TABLE jenkinstable(id int, mobile int,name varchar)
-                    '''
-                    def INSERT_TABLE='''
-                        INSERT INTO jenkinstable VALUES(1,234,'SHIV')
-                    '''
                     
-                    def SELECT_TABLE='''
-                        SELECT * FROM jenkinstable
-                    '''
-                    sh """
-                        echo "Inserting data into jenkinsTable"
+                    if(params.Action == 'CreateTable'){
+                        def CREATE_TABLE = """
+                        CREATE TABLE ${Name}(id int, mobile int,name varchar)
+                        """
+                        sh """
+                        echo "Creating Table ${Name}"
+                        /usr/local/bin/aws redshift-data execute-statement --cluster-identifier redshift-test --database dev --db-user ${REDSHIFT_USER} --sql "${CREATE_TABLE}"
+
+                    """
+                    }
+
+                    if(params.Action == 'InsertTable') {
+                        def INSERT_TABLE="""
+                        INSERT INTO ${Name} VALUES(4,2345,'SHIV')
+                        """
+                        sh """
+                        echo "Inserting data into table ${Name}"
                         /usr/local/bin/aws redshift-data execute-statement --cluster-identifier redshift-test --database dev --db-user ${REDSHIFT_USER} --sql "${INSERT_TABLE}"
 
                     """
-                    sh """
-                        echo "Selcting all data from jenkinsTable"
-                        /usr/local/bin/aws redshift-data execute-statement --cluster-identifier redshift-test --database dev --db-user ${REDSHIFT_USER} --sql "${SELECT_TABLE}"
+                    }
+
+                    if(params.Action == 'AlterTable') {
+                        def ALTER_TABLE ="""
+                            // ALTER table ${Name} rename column mobile to MOBILE;
+                            ALTER TABLE ${Name} ADD `id` INT NOT NULL AUTO_INCREMENT;
+                        """
+                        
+                        sh """
+                        echo "Altering data into table ${Name}"
+                        /usr/local/bin/aws redshift-data execute-statement --cluster-identifier redshift-test --database dev --db-user ${REDSHIFT_USER} --sql "${ALTER_TABLE}"
 
                     """
+
+                    }
+
+                    if(params.Action == 'DropTable') {
+                        def DROP_TABLE ="""
+                            DROP TABLE if exists ${Name};
+                        """
+                        sh """
+                        echo "Deleting  table ${Name}"
+                        /usr/local/bin/aws redshift-data execute-statement --cluster-identifier redshift-test --database dev --db-user ${REDSHIFT_USER} --sql "${DROP_TABLE}"
+
+                    """
+
+                    }
+                    
+                    
+                    
+                    // def SELECT_TABLE='''
+                    //     SELECT * FROM jenkinstable
+                    // '''
+                    // def 
+                   
+                    // sh """
+                    //     echo "Selcting all data from jenkinsTable"
+                    //     /usr/local/bin/aws redshift-data execute-statement --cluster-identifier redshift-test --database dev --db-user ${REDSHIFT_USER} --sql "${SELECT_TABLE}"
+
+                    // """
                     
                     }
                     
