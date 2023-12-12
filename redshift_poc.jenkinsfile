@@ -1,5 +1,5 @@
 properties([parameters([
-        choice(choices: ['CreateTable', 'InsertTable', 'AlterTable', 'DropTable'], description: 'Select the action to do at cluster ', name: 'Action'), 
+        choice(choices: ['CreateTable', 'InsertTable', 'AlterTable', 'DropTable', 'CRETAEDb'], description: 'Select the action to do at cluster ', name: 'Action'), 
         string(defaultValue: 'jenkinstable', description: 'Enter Databasename or Tablename', name: 'Name')])])
 pipeline{
     agent any
@@ -47,15 +47,15 @@ pipeline{
 
                     if(params.Action == 'AlterTable') {
                         def ALTER_TABLE ="""
-                            ALTER table ${Name} rename column mobile to MOBILE;
-                            //ALTER TABLE ${Name} ADD `id` INT NOT NULL AUTO_INCREMENT;
+                            ALTER TABLE ${NAME} drop column mobile;
+                            //ALTER TABLE ${NAME} column place varchar;
                         """
                         
                         sh """
                         echo "Altering data into table ${Name}"
                         /usr/local/bin/aws redshift-data execute-statement --cluster-identifier redshift-test --database dev --db-user ${REDSHIFT_USER} --sql "${ALTER_TABLE}"
 
-                    """
+                        """
 
                     }
 
@@ -68,6 +68,18 @@ pipeline{
                         /usr/local/bin/aws redshift-data execute-statement --cluster-identifier redshift-test --database dev --db-user ${REDSHIFT_USER} --sql "${DROP_TABLE}"
 
                     """
+
+                    }
+
+                    if(params.Action == 'CRETAEDb') {
+                        def CREATE_DB ="""
+                        CREATE DATABASE ${Name}
+                        """
+                        sh """
+                        echo "Creating  Database ${Name}"
+                        /usr/local/bin/aws redshift-data execute-statement --cluster-identifier redshift-test --db-user ${REDSHIFT_USER} --sql "${CREATE_DB}"
+
+                        """
 
                     }
                     
