@@ -47,8 +47,8 @@ pipeline{
 
                     if(params.Action == 'AlterTable') {
                         def ALTER_TABLE ="""
-                            // ALTER table ${Name} rename column mobile to MOBILE;
-                            ALTER TABLE ${Name} ADD `id` INT NOT NULL AUTO_INCREMENT;
+                            ALTER table ${Name} rename column mobile to MOBILE;
+                            //ALTER TABLE ${Name} ADD `id` INT NOT NULL AUTO_INCREMENT;
                         """
                         
                         sh """
