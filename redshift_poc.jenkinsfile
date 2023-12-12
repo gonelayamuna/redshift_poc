@@ -1,0 +1,49 @@
+pipeline{
+    agent any
+    environment {
+        REDSHIFT_HOST = 'redshift-test.cwam4guzwuwl.ap-south-1.redshift.amazonaws.com'
+        //redshift-test'
+        REDSHIFT_PORT = '5439'
+        REDSHIFT_DB = 'dev'
+        REDSHIFT_USER = 'admin'
+        REDSHIFT_PASSWORD = 'Admin123'
+    }
+    stages {
+        stage('Create Table') {
+            steps {
+                script {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "aws-test",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                    echo "PSQL path is: $psql"
+                    def createTable = '''
+                        CREATE TABLE jenkinstable(id int, mobile int,name varchar)
+                    '''
+                    def INSERT_TABLE='''
+                        INSERT INTO jenkinstable VALUES(1,234,'SHIV')
+                    '''
+                    
+                    def SELECT_TABLE='''
+                        SELECT * FROM jenkinstable
+                    '''
+                    sh """
+                        echo "Inserting data into jenkinsTable"
+                        /usr/local/bin/aws redshift-data execute-statement --cluster-identifier redshift-test --database dev --db-user ${REDSHIFT_USER} --sql "${INSERT_TABLE}"
+
+                    """
+                    sh """
+                        echo "Selcting all data from jenkinsTable"
+                        /usr/local/bin/aws redshift-data execute-statement --cluster-identifier redshift-test --database dev --db-user ${REDSHIFT_USER} --sql "${SELECT_TABLE}"
+
+                    """
+                    
+                    }
+                    
+                }
+            }
+        }
+    }
+}
