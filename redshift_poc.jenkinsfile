@@ -1,5 +1,5 @@
 properties([parameters([
-        choice(choices: ['CreateTable', 'InsertTable', 'AlterTable', 'DropTable', 'CRETAEDb'], description: 'Select the action to do at cluster ', name: 'Action'), 
+        choice(choices: ['CreateTable', 'InsertTable', 'AlterTable', 'DropTable'], description: 'Select the action to do at cluster ', name: 'Action'), 
         string(defaultValue: 'jenkinstable', description: 'Enter Databasename or Tablename', name: 'Name')])])
 pipeline{
     agent any
